@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Inspect logs
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local scratch notes
+agent_artefacts/*
+
+# uv
+.python-version
