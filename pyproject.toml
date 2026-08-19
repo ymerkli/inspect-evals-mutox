@@ -1,0 +1,167 @@
+[project]
+name = "mutox"
+description = "Inspect AI implementation of the MuTox toxicity benchmark"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Generality Labs" }]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Typing :: Typed",
+]
+dependencies = [
+  # Bundles a static ffmpeg build, used to decode source audio and cut clips.
+  "imageio-ffmpeg>=0.5.1",
+  "inspect_ai>=0.3.158",
+  "platformdirs>=3.0.0",
+  "requests>=2.32.0",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Source Code" = "https://github.com/ymerkli/inspect-evals-mutox"
+
+[project.entry-points.inspect_ai]
+mutox = "mutox"
+
+[dependency-groups]
+dev = [
+  "mypy",
+  # Needed to run the eval against OpenAI audio models. Pinned below 3.0:
+  # with openai 3.x, inspect_ai 0.3.205 leaks an httpx.Timeout object into
+  # httpcore's anyio backend, so every request dies with a misleading
+  # APIConnectionError ("unsupported operand type(s) for +: 'float' and
+  # 'Timeout'"). Affects all models, not just audio.
+  "openai<3",
+  "pre-commit",
+  "pytest",
+  "pytest-asyncio",
+  "pytest-dotenv",
+  "pytest-mock",
+  "rich",
+  "ruff==0.13.2",
+  "toml",
+  "types-requests",
+]
+
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.check-wheel-contents]
+ignore = ["W005", "W009"]
+
+[tool.mypy]
+exclude = ["build"]
+warn_unused_ignores = true
+no_implicit_reexport = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["imageio_ffmpeg"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["mutox.*"]
+warn_return_any = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+extra_checks = true
+disable_error_code = "unused-ignore"
+
+[tool.pytest.ini_options]
+addopts = "-rA --color=yes --durations=10"
+log_level = "WARNING"
+minversion = "7.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+env_files = [".env"]
+
+[tool.ruff]
+src = ["src"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle errors
+  "W",  # pycodestyle warnings
+  "F",  # flake8
+  "D",  # pydocstyle
+  "I",  # isort
+  "SIM101",  # duplicate isinstance
+  "YTT",  # flake8-2020
+  "LOG",  # flake8-logging
+  "NPY",  # numpy-specific-rules-npy
+  "PLE",  # pylint error
+  "PLR",  # pylint refactor
+  "PLW",  # pylint warning
+  "UP006",  # Prevent List and Dict, use list and dict instead.
+  "UP007",  # Prevent Union[X, Y], use [X | Y] instead.
+  "UP045",  # Prevent Optional[X], use X | None instead.
+  "FURB",  # refurb
+  "TID252",  # relative-imports
+]
+ignore = [
+  "E203",  # whitespace-before-punctuation
+  "E501",  # line-too-long
+  "D10",  # missing docstrings
+  "D212",  # docstring multi-line-summary-first-line
+  "D415",  # docstring missing-terminal-punctuation
+  "PLR0911",  # Too many return statements
+  "PLR0912",  # Too many branches
+  "PLR0913",  # Too many arguments in function definition
+  "PLR0915",  # Too many statements
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004"]  # Allow magic numbers in tests
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.isort]
+order-by-type = false
+case-sensitive = false
+split-on-trailing-comma = true
+lines-after-imports = 2
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.setuptools.package-data]
+"*" = ["eval.yaml"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mutox*"]
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0+unknown"
+
+[tool.typos]
+# Explicitly configured so `typos --config pyproject.toml` (see
+# .pre-commit-config.yaml) has a section to read.
+files.extend-exclude = ["uv.lock", "logs/"]
+
+[tool.typos.default.extend-words]
+# Valid variant spelling, flagged by typos' default dictionary.
+unparseable = "unparseable"
+
+[tool.uv]
+environments = [
+  "python_version >= '3.11'",
+]

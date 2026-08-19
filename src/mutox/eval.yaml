@@ -1,0 +1,38 @@
+title: "MuTox: Multilingual Audio-based Toxicity Detection"
+description: |
+  Asks a model to judge whether a short speech clip contains toxicity, across
+  30 languages. Samples come from the devtest split of the MuTox dataset, the
+  first highly multilingual audio-based toxicity dataset with binary toxicity
+  labels, covering 20k utterances in English and Spanish and 4k in each of 28
+  further languages.
+arxiv: https://arxiv.org/abs/2401.05060
+group: Safeguards
+contributors:
+  - ymerkli
+version: "1-A"
+tags:
+  - "Multimodal"
+tasks:
+  - name: mutox
+    dataset_samples: 1945
+
+external_assets:
+  - type: direct_url
+    source: "https://dl.fbaipublicfiles.com/seamless/datasets/mutox.tsv"
+    fetch_method: download_and_verify
+    state: floating
+    comment: >-
+      Annotations TSV (MIT licensed). The URL is unversioned, so the download is
+      pinned by SHA-256 checksum instead.
+  - type: direct_url
+    source: "https://dl.fbaipublicfiles.com/seamless/datasets/mutox.tsv"
+    fetch_method: other
+    state: floating
+    comment: >-
+      Audio is not redistributed by MuTox. Each row names a third-party source
+      URL (podcast CDNs, archive.org, ...) and a millisecond range, fetched and
+      clipped at runtime. These URLs decay over time, so the retrievable sample
+      count is below the published devtest size and varies between users.
+
+metadata:
+  requires_internet: true

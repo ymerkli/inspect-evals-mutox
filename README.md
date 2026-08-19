@@ -3,6 +3,9 @@
 An [Inspect AI](https://inspect.aisi.org.uk/) implementation of **MuTox**, a
 multilingual audio-based toxicity detection benchmark.
 
+The evaluation is documented in
+[`src/mutox/README.md`](src/mutox/README.md).
+
 > **Content warning:** MuTox contains offensive speech, including slurs and
 > hate speech, across 30 languages.
 
@@ -12,7 +15,7 @@ multilingual audio-based toxicity detection benchmark.
 uv sync
 
 # run against an audio-capable model
-uv run inspect eval mutox/mutox -T limit=10 --model openai/gpt-audio
+uv run inspect eval mutox/mutox -T limit=10 --model openai/gpt-audio-small
 
 # wiring check without spending anything
 uv run inspect eval mutox/mutox -T limit=5 --model mockllm/model
@@ -61,13 +64,14 @@ uv run pre-commit run --all-files
 
 ```text
 src/mutox/
+  mutox.py         # @task definition and solver wiring
   __init__.py      # exports the task for Inspect discovery
   constants.py     # URLs, language codes, prompts, offset-unit rules
   dataset.py       # annotation download, audio clipping, caching
   scorers.py       # quasi_exact_match scorer and toxicity metrics
-  tasks.py         # @task definition and solver wiring
   eval.yaml        # evaluation metadata
-tests/
+  README.md        # evaluation documentation
+tests/mutox/
   conftest.py      # fixtures: synthetic audio, stubbed downloads
   test_dataset.py
   test_scorers.py
@@ -75,9 +79,11 @@ tests/
 ```
 
 The task is registered through `[project.entry-points.inspect_ai]` in
-`pyproject.toml`, which is what makes `inspect eval mutox/mutox` resolve. The
-distribution is named `mutox` to match the import package, because Inspect
-derives the registry prefix from the distribution name.
+`pyproject.toml`, which is what makes `inspect eval mutox/mutox` resolve.
+Inspect derives the registry prefix from the top-level import package name, so
+the task is addressed as `<package>/<task function>` — here both are `mutox`.
+The distribution is named to match the import package, because an editable
+install is only recognised when the two agree.
 
 ## Licence
 
