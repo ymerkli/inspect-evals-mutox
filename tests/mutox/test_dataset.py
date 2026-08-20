@@ -326,3 +326,47 @@ def test_language_codes_cover_thirty_languages() -> None:
 
 def test_bad_files_name_is_unchanged() -> None:
     assert BAD_FILES_NAME == "bad_audio_files.txt"
+
+
+class TestSeededSampling:
+    """Seeded sampling of a language split.
+
+    Toxic labels cluster by position in the TSV, so a bounded run needs a seed
+    to be representative of the split.
+    """
+
+    @staticmethod
+    def _rows() -> list[tuple[str, ...]]:
+        return [
+            (f"id{i}", "eng", "devtest", f"http://audio.test/{i}.mp3 0 1000", "t", "0")
+            for i in range(6)
+        ]
+
+    def test_unseeded_limit_takes_the_head_in_file_order(
+        self, tmp_path: Path, fake_get: list[str]
+    ) -> None:
+        write_tsv(tmp_path / "mutox.tsv", self._rows())
+
+        dataset = build_dataset("English", cache_dir=tmp_path, limit=3)
+
+        assert [s.id for s in dataset] == ["id0", "id1", "id2"]
+
+    def test_seed_draws_a_different_sample(
+        self, tmp_path: Path, fake_get: list[str]
+    ) -> None:
+        write_tsv(tmp_path / "mutox.tsv", self._rows())
+
+        dataset = build_dataset("English", cache_dir=tmp_path, limit=3, seed=7)
+
+        assert len(dataset) == 3
+        assert [s.id for s in dataset] != ["id0", "id1", "id2"]
+
+    def test_same_seed_gives_the_same_sample(
+        self, tmp_path: Path, fake_get: list[str]
+    ) -> None:
+        write_tsv(tmp_path / "mutox.tsv", self._rows())
+
+        first = build_dataset("English", cache_dir=tmp_path, limit=3, seed=7)
+        second = build_dataset("English", cache_dir=tmp_path, limit=3, seed=7)
+
+        assert [s.id for s in first] == [s.id for s in second]

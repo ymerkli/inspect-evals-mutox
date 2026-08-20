@@ -14,6 +14,7 @@ on first use.
 import csv
 import hashlib
 import os
+import random
 import subprocess
 import tempfile
 from pathlib import Path
@@ -227,6 +228,7 @@ def build_dataset(
     cache_dir: Path | None = None,
     limit: int | None = None,
     allow_download: bool = True,
+    seed: int | None = None,
 ) -> MemoryDataset:
     """Build the MuTox dataset for a single language.
 
@@ -243,6 +245,10 @@ def build_dataset(
             this also bounds how much audio is downloaded.
         allow_download: If False, use only already-cached clips and never hit
             the network. Used for offline runs and tests.
+        seed: Shuffle the rows with this seed before applying `limit`. Toxic
+            labels are clustered by position in the TSV, so an unshuffled
+            `limit` returns an unrepresentative slice of the split. Leave
+            unset to keep the file order.
 
     Returns:
         A MemoryDataset of Yes/No toxicity samples for the language.
@@ -270,6 +276,8 @@ def build_dataset(
 
     ffmpeg = get_ffmpeg_path()
     rows = read_annotations(tsv_path, lang_code)
+    if seed is not None:
+        random.Random(seed).shuffle(rows)
     bad_files = load_bad_files(cache_dir)
 
     samples: list[Sample] = []

@@ -32,6 +32,7 @@ def mutox(
     language: str = "English",
     limit: int | None = None,
     cache_dir: str | None = None,
+    seed: int | None = None,
 ) -> Task:
     """MuTox audio toxicity detection for one language.
 
@@ -43,6 +44,9 @@ def mutox(
         cache_dir: Directory for the annotations TSV and materialised audio
             clips. Defaults to the platform cache directory, which can also be
             set with the `INSPECT_EVALS_CACHE_DIR` environment variable.
+        seed: Shuffle the split with this seed before applying `limit`. Toxic
+            labels are clustered by position in the source TSV, so a bounded
+            run without a seed is not a representative sample of the split.
 
     Returns:
         Task for the requested MuTox language split.
@@ -58,6 +62,7 @@ def mutox(
             language=language,
             cache_dir=Path(cache_dir) if cache_dir is not None else None,
             limit=limit,
+            seed=seed,
         ),
         solver=[system_message(SYSTEM_MESSAGE), generate()],
         scorer=quasi_exact_match(),
