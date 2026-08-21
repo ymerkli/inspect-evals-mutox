@@ -15,7 +15,7 @@ The evaluation is documented in
 uv sync
 
 # run against an audio-capable model
-uv run inspect eval mutox/mutox -T limit=10 --model openai/gpt-audio-small
+uv run inspect eval mutox/mutox -T limit=10 --model openai/gpt-audio-mini
 
 # wiring check without spending anything
 uv run inspect eval mutox/mutox -T limit=5 --model mockllm/model

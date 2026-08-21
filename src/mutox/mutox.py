@@ -8,13 +8,13 @@ https://arxiv.org/abs/2401.05060
 The model hears a short speech clip and answers whether it contains toxicity.
 
 # run the default (English) split
-inspect eval mutox/mutox --model openai/gpt-audio-small
+inspect eval mutox/mutox --model openai/gpt-audio-mini
 
 # run another language
-inspect eval mutox/mutox -T language=Spanish --model openai/gpt-audio-small
+inspect eval mutox/mutox -T language=Spanish --model openai/gpt-audio-mini
 
 # bound how much audio is fetched
-inspect eval mutox/mutox -T limit=50 --model openai/gpt-audio-small
+inspect eval mutox/mutox -T limit=50 --model openai/gpt-audio-mini
 """
 
 from pathlib import Path

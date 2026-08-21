@@ -17,13 +17,13 @@ Contributed by [@ymerkli](https://github.com/ymerkli)
 uv sync
 
 # the default (English) split
-uv run inspect eval mutox/mutox --model openai/gpt-audio-small
+uv run inspect eval mutox/mutox --model openai/gpt-audio-mini
 
 # another language
-uv run inspect eval mutox/mutox -T language=Spanish --model openai/gpt-audio-small
+uv run inspect eval mutox/mutox -T language=Spanish --model openai/gpt-audio-mini
 
 # bound how much audio is fetched
-uv run inspect eval mutox/mutox -T limit=50 --model openai/gpt-audio-small
+uv run inspect eval mutox/mutox -T limit=50 --model openai/gpt-audio-mini
 
 # wiring check without spending anything
 uv run inspect eval mutox/mutox -T limit=5 --model mockllm/model
@@ -45,7 +45,7 @@ eval(mutox(language="German", limit=10))
 To avoid passing `--model` every time, put it in a `.env` file:
 
 ```bash
-INSPECT_EVAL_MODEL=openai/gpt-audio-small
+INSPECT_EVAL_MODEL=openai/gpt-audio-mini
 ```
 
 ### Task parameters
