@@ -55,10 +55,15 @@ INSPECT_EVAL_MODEL=openai/gpt-audio-small
 | `language`  | `"English"` | One of the 30 languages in `LANGUAGE_CODES`                |
 | `limit`     | `None`      | Stop after this many samples, bounding how much is fetched |
 | `cache_dir` | platform    | Where the annotations TSV and audio clips are cached       |
+| `seed`      | `None`      | Shuffle the split before applying `limit`                  |
 
 Use the task parameter `-T limit=N`, not Inspect's `--limit N`: the dataset is
 materialised while the task is constructed, so `--limit` does not stop a
 full-language download.
+
+Pass `-T seed=N` with any bounded run. Toxic labels are clustered by position
+in the source TSV, so an unseeded `limit` takes an unrepresentative slice of
+the split.
 
 ## Requirements
 
@@ -142,17 +147,63 @@ alongside it. The toxic-class metrics read the gold label from
 `sample.metadata["toxic"]` and raise if it is absent, so they cannot be pointed
 at an unrelated dataset by accident.
 
-## Validation
+## Results
 
-Benchmark results are pending a full run on audio-capable models.
+`google/gemini-2.5-pro-preview-05-06` via OpenRouter, 100 samples per language
+across all 30 languages (3,000 samples, `-T limit=100 -T seed=42`).
 
-| Model     | Language | Samples | Accuracy | F1 (toxic) |
-| --------- | -------- | ------: | -------: | ---------: |
-| _pending_ |          |         |          |            |
+| Metric | This eval | HELM |
+| ------ | --------: | ---: |
+| MuTox EM / accuracy | 0.805 | 0.735 |
 
-Measured link rot, as a lower bound (40 URLs per language, HEAD requests,
-August 2026; some hosts reject HEAD but serve GET): Swahili 93%, Mandarin 83%,
-Arabic 80%, German 75%, English 68%, Spanish 50% reachable.
+HELM reports 0.735 for the same model on its [MuTox
+scenario](https://crfm.stanford.edu/helm/audio/latest/). **The two numbers are
+not directly comparable**, for three reasons:
+
+- HELM reads the `public_url_segment` offsets as milliseconds for all 30
+  languages. They are 16 kHz sample counts for 28 of them, so HELM seeks past
+  the end of the recording and scores near-silent clips. This eval reads the
+  units per language (see [Segment offset units differ by
+  language](#segment-offset-units-differ-by-language)), so for those 28
+  languages the two runs scored different audio.
+- This eval constrains the answer format with a system message; HELM poses the
+  bare question. That moves `no_answer_rate`, and therefore accuracy.
+- This is 100 samples per language, not the full split.
+
+### Per language
+
+| Language | Reasoning | n | Toxic | Accuracy | Precision | Recall | F1 |
+| -------- | --------- | -: | ----: | -------: | --------: | -----: | -: |
+| Arabic | full | 100 | 7 | 0.790 | 0.231 | 0.857 | 0.364 |
+| Bengali | full | 100 | 1 | 0.870 | 0.071 | 1.000 | 0.133 |
+| Bulgarian | full | 100 | 14 | 0.780 | 0.000 | 0.000 | 0.000 |
+| Catalan | full | 100 | 3 | 0.880 | 0.000 | 0.000 | 0.000 |
+| Czech | full | 100 | 3 | 0.900 | 0.111 | 0.333 | 0.167 |
+| Danish | full | 100 | 16 | 0.700 | 0.111 | 0.125 | 0.118 |
+| Dutch | full | 100 | 10 | 0.870 | 0.444 | 0.800 | 0.571 |
+| English | full | 100 | 12 | 0.690 | 0.256 | 0.833 | 0.392 |
+| Estonian | full | 100 | 10 | 0.810 | 0.200 | 0.300 | 0.240 |
+| Finnish | full | 100 | 6 | 0.890 | 0.222 | 0.333 | 0.267 |
+| French | full | 100 | 11 | 0.740 | 0.281 | 0.818 | 0.419 |
+| German | full | 100 | 18 | 0.750 | 0.370 | 0.556 | 0.444 |
+| Greek | full | 100 | 9 | 0.810 | 0.083 | 0.111 | 0.095 |
+| Hebrew | full | 100 | 2 | 0.830 | 0.000 | 0.000 | 0.000 |
+| Hindi | full | 100 | 14 | 0.800 | 0.375 | 0.643 | 0.474 |
+| Hungarian | full | 100 | 18 | 0.740 | 0.214 | 0.167 | 0.188 |
+| Indonesian | capped | 100 | 6 | 0.860 | 0.100 | 0.167 | 0.125 |
+| Italian | full | 100 | 14 | 0.750 | 0.261 | 0.429 | 0.324 |
+| Mandarin Chinese | full | 100 | 6 | 0.860 | 0.278 | 0.833 | 0.417 |
+| Polish | full | 100 | 8 | 0.780 | 0.000 | 0.000 | 0.000 |
+| Portuguese | full | 100 | 17 | 0.750 | 0.357 | 0.588 | 0.444 |
+| Russian | full | 100 | 11 | 0.730 | 0.250 | 0.727 | 0.372 |
+| Slovak | capped | 100 | 4 | 0.810 | 0.143 | 0.750 | 0.240 |
+| Spanish | capped | 100 | 18 | 0.720 | 0.333 | 0.556 | 0.417 |
+| Swahili | capped | 100 | 7 | 0.790 | 0.111 | 0.286 | 0.160 |
+| Tagalog | capped | 100 | 5 | 0.930 | 0.250 | 0.200 | 0.222 |
+| Turkish | capped | 100 | 5 | 0.840 | 0.133 | 0.400 | 0.200 |
+| Urdu | capped | 100 | 11 | 0.850 | 0.333 | 0.364 | 0.348 |
+| Vietnamese | capped | 100 | 13 | 0.860 | 0.462 | 0.462 | 0.462 |
+| Western Persian | capped | 100 | 8 | 0.760 | 0.000 | 0.000 | 0.000 |
 
 ## Citation
 
